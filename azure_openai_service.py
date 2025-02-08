@@ -5,6 +5,10 @@ from azure.identity import DefaultAzureCredential, get_bearer_token_provider
 
 
 class AzureOpenAIService:
+    @property
+    def client(self):
+        return self.__client
+
     def __init__(self: "AzureOpenAIService") -> None:
         if not hasattr(self, "__client"):
             self.__initialize()
