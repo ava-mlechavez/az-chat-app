@@ -127,7 +127,7 @@ def add_document(req: func.HttpRequest):
 def hotel_search_post(req: func.HttpRequest):
     try:
         endpoint = "https://mslearn-ai900-eastus2-basic-search.search.windows.net"
-        # credential = DefaultAzureCredential()
+        credential = DefaultAzureCredential()
         hotel_search_client = SearchClient(
             # endpoint=endpoint, index_name="hotel-vector", credential=credential
             endpoint=endpoint,
@@ -159,6 +159,7 @@ def hotel_search_post(req: func.HttpRequest):
                     "description": result["chunk"],
                 }
             )
+
         return func.HttpResponse(json.dumps({"hotels": hotels}))
 
     except ValueError:
