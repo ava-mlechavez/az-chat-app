@@ -14,9 +14,21 @@ class AzureOpenAIService:
             self.__initialize()
             self.__client = openai
 
-    def chat_create_completion(self: "AzureOpenAIService", prompt: str) -> str:
+    def chat_create_completion(
+        self: "AzureOpenAIService", prompt: str, suggestions: list
+    ) -> str:
         system_message: str = os.getenv(
-            "SYSTEM_MESSAGE", "You are a helpful assistant."
+            "SYSTEM_MESSAGE",
+            f"""
+                You are a helpful assistant and you will be answering questions
+                that will be given to you in the form of an array of objects.
+                Suggest and provide the best suggestion and remove unrelated answers.
+                
+                The question is {prompt}
+
+                Your suggestion is below:
+                {list}
+            """,
         )
         messages: list[ChatCompletionMessageParam] = [
             {"role": "system", "content": system_message},
