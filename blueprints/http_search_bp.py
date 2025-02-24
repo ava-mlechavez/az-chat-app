@@ -16,7 +16,7 @@ from azure.search.documents.indexes.models import (
     VectorSearchProfile,
 )
 from azure.identity import DefaultAzureCredential
-from azure_openai_service import AzureOpenAIService
+from services.azure_openai_service import AzureOpenAIService
 
 simple_search_bp = func.Blueprint()
 

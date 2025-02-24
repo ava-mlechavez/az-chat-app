@@ -1,6 +1,6 @@
 import azure.functions as func
-from http_chat_blueprint import chat_bp
-from http_search_bp import simple_search_bp
+from blueprints.http_chat_blueprint import chat_bp
+from blueprints.http_search_bp import simple_search_bp
 
 app = func.FunctionApp()
 
