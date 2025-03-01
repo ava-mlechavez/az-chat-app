@@ -1,7 +1,12 @@
 import os
 import openai
 import logging
-from openai.types.chat import ChatCompletionMessageParam, ChatCompletionUserMessageParam, ChatCompletionSystemMessageParam
+from openai.types.chat import (
+    ChatCompletionMessageParam,
+    ChatCompletionUserMessageParam,
+    ChatCompletionSystemMessageParam,
+)
+
 from azure.identity import DefaultAzureCredential, get_bearer_token_provider
 
 class AzureOpenAIService:
@@ -12,14 +17,18 @@ class AzureOpenAIService:
     def __init__(self: "AzureOpenAIService") -> None:
         if not hasattr(self, "__client"):
             self.__initialize()
-            self.__client = openai
+            self.__client = openai.AsyncAzureOpenAI(
+                azure_endpoint=openai.azure_endpoint,
+                azure_ad_token_provider=openai.azure_ad_token_provider,
+                api_version=openai.api_version
+            )
 
-    def chat(
+    async def chat(
         self: "AzureOpenAIService",
         messages: list[ChatCompletionMessageParam]
-    ) -> str:
+    ):
         try:
-            completion = self.__client.chat.completions.create(
+            completion = await self.__client.chat.completions.create(
                 model=os.getenv("DEPLOYMENT_NAME", "gpt-4o"),
                 messages=messages,
                 max_tokens=800,
@@ -30,12 +39,30 @@ class AzureOpenAIService:
                 stop=None,
                 stream=False,
             )
-            content = completion.choices[0].message.content
-
-            return content
+            return completion.choices[0].message.content
         except Exception as e:
             logging.error("Error during chat", e)
             return ""
+
+    async def stream_chat(
+            self: "AzureOpenAIService",
+            messages: list[ChatCompletionMessageParam]
+        ):
+            try:
+                return await self.__client.chat.completions.create(
+                    model=os.getenv("DEPLOYMENT_NAME", "gpt-4o"),
+                    messages=messages,
+                    max_tokens=1000,
+                    temperature=0.7,
+                    top_p=0.95,
+                    frequency_penalty=0,
+                    presence_penalty=0,
+                    stop=None,
+                    stream=True,
+                )
+            except Exception as e:
+                logging.error("Error during chat", e)
+                return ""
 
     def create_embedding(self: "AzureOpenAIService", input: str) -> list[float]:
         return (

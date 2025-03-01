@@ -4,5 +4,5 @@ from blueprints.http_search_bp import simple_search_bp
 
 app = func.FunctionApp()
 
-app.register_functions(chat_bp)
-app.register_functions(simple_search_bp)
+app.register_blueprint(chat_bp)
+# app.register_blueprint(simple_search_bp)

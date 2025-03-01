@@ -1,23 +1,30 @@
-import json
 import azure.functions as func
+from azurefunctions.extensions.http.fastapi import Request, StreamingResponse
 from services.chat_service import ChatService
 
 chat_bp = func.Blueprint()
+
+async def stream_processor(response):
+    async for chunk in response:
+        if len(chunk.choices) > 0:
+            delta = chunk.choices[0].delta
+            if delta is not None and delta.content:
+                yield delta.content
 
 
 @chat_bp.route(
     route="chat", methods=[func.HttpMethod.POST], auth_level=func.AuthLevel.ANONYMOUS
 )
-def chat(req: func.HttpRequest) -> func.HttpResponse:
+async def chat(req: Request):
     try:
-        req_body = req.get_json()
+        req_body = await req.json()
         prompt = req_body.get("prompt")
         chat_history = req_body.get("chat_history")
 
         chat_service = ChatService()
-        content = chat_service.chat(prompt=prompt, chat_history=list(chat_history))
+        response = await chat_service.chat(prompt=prompt, chat_history=list(chat_history))
 
-        return func.HttpResponse(json.dumps({ "message": content}), status_code=200)
+        return StreamingResponse(stream_processor(response), media_type="text/event-stream")
     except ValueError as e:
         return func.HttpResponse(
             str(e),

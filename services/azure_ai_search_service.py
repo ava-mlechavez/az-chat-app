@@ -10,7 +10,7 @@ from azure.search.documents._generated.models import (
 from azure.search.documents._paging import SearchItemPaged
 
 class AzureAISearchService:
-    def __init__(self: "AzureAISearchService", index_name: str = "hotel-vector"):
+    def __init__(self: "AzureAISearchService", index_name: str):
         if not hasattr(self, "__client"):
             self.__client = SearchClient(
                 endpoint=os.getenv("AZURE_AI_SEARCH_ENDPOINT", ""),
@@ -40,16 +40,18 @@ class AzureAISearchService:
         use_semantic_query: bool = True,
         **kwargs: dict
     ) -> SearchItemPaged[dict]:
-        k_nearest_neighbors = 10 if use_semantic_query else 3
+        # k_nearest_neighbors = 10 if use_semantic_query else 3
         vector_queries: list[VectorQuery] | None = [
             VectorizableTextQuery(
-                text=query, k_nearest_neighbors= k_nearest_neighbors, fields="text_vector"
+                text=query,
+                # k_nearest_neighbors= k_nearest_neighbors,
+                fields="text_vector"
             )
         ]
 
         query_args = {
             "search_text": query,
-            "top": 3,
+            # "top": 3,
             "vector_queries": vector_queries
         }
 
@@ -57,7 +59,7 @@ class AzureAISearchService:
             query_args.update(
                 {
                     "query_type": QueryType.SEMANTIC,
-                    "semantic_configuration_name": "hotel-vector-semantic-configuration",
+                    "semantic_configuration_name": os.environ["SEMANTIC_CONFIGURATION_NAME"],
                 }
             )
 
