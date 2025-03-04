@@ -107,4 +107,4 @@ class ChatService:
         """
 
     def __get_normalized_chat_history(self: "ChatService", chat_history: list[ChatCompletionMessageParam]) -> str:
-        return "\n".join([f'{message["content"]}' for message in chat_history])
+        return "\n".join([f'role: {message["role"]} content: {message["content"]}' for message in chat_history])
