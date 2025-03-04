@@ -16,6 +16,7 @@ class ChatService:
 
         openai_service = AzureOpenAIService()
         standalone_question = await openai_service.chat(
+            model="gpt-4o-mini",
             messages=[
                 ChatCompletionSystemMessageParam(
                     role="system",
@@ -48,11 +49,17 @@ class ChatService:
             context=hotels
         )
 
-        return await openai_service.stream_chat(messages=[
-            ChatCompletionSystemMessageParam(
-                role="system",
-                content=chat_with_context_system_message),
-        ])
+        return await openai_service.stream_chat(
+            model="gpt-4o",
+            messages=[
+                ChatCompletionSystemMessageParam(
+                    role="system",
+                    content=chat_with_context_system_message
+                )
+
+             ]
+        )
+
 
     def __create_standalone_question(self: "ChatService", prompt: str, chat_history: list[ChatCompletionMessageParam]) -> str:
         system_message = os.getenv(

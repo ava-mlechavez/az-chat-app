@@ -25,11 +25,12 @@ class AzureOpenAIService:
 
     async def chat(
         self: "AzureOpenAIService",
+        model: str,
         messages: list[ChatCompletionMessageParam]
     ):
         try:
             completion = await self.__client.chat.completions.create(
-                model=os.getenv("DEPLOYMENT_NAME", "gpt-4o"),
+                model=model,
                 messages=messages,
                 max_tokens=800,
                 temperature=0.7,
@@ -46,11 +47,12 @@ class AzureOpenAIService:
 
     async def stream_chat(
             self: "AzureOpenAIService",
+            model: str,
             messages: list[ChatCompletionMessageParam]
         ):
             try:
                 return await self.__client.chat.completions.create(
-                    model=os.getenv("DEPLOYMENT_NAME", "gpt-4o"),
+                    model=model,
                     messages=messages,
                     max_tokens=1000,
                     temperature=0.7,
