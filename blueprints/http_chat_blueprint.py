@@ -1,5 +1,5 @@
 import azure.functions as func
-from azurefunctions.extensions.http.fastapi import Request, StreamingResponse
+from azurefunctions.extensions.http.fastapi import Request, StreamingResponse, Response
 from services.chat_service import ChatService
 
 chat_bp = func.Blueprint()
@@ -26,7 +26,7 @@ async def chat(req: Request):
 
         return StreamingResponse(stream_processor(response), media_type="text/event-stream")
     except ValueError as e:
-        return func.HttpResponse(
+        return Response(
             str(e),
             status_code=500
         )
