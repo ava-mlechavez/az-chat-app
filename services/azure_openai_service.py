@@ -7,7 +7,7 @@ from openai.types.chat import (
     ChatCompletionSystemMessageParam,
 )
 
-from azure.identity import DefaultAzureCredential, get_bearer_token_provider
+from azure.identity import ManagedIdentityCredential, AzureCliCredential, get_bearer_token_provider
 
 class AzureOpenAIService:
     @property
@@ -74,8 +74,10 @@ class AzureOpenAIService:
 
     def __initialize(self: "AzureOpenAIService") -> None:
         try:
+            credential = self.__get_credential()
             token_provider = get_bearer_token_provider(
-                DefaultAzureCredential(), "https://cognitiveservices.azure.com/.default"
+                credential,
+                "https://cognitiveservices.azure.com/.default"
             )
             openai.azure_ad_token_provider = token_provider
             openai.azure_endpoint = os.environ["AZURE_OPENAI_ENDPOINT"]
@@ -83,3 +85,12 @@ class AzureOpenAIService:
             openai.api_version = os.environ["OPENAI_API_VERSION"]
         except Exception as e:
             print("Error during token retrieval", e)
+
+
+    def __get_credential(self: "AzureOpenAIService") -> ManagedIdentityCredential | AzureCliCredential:
+        client_id = os.getenv("AZURE_CLIENT_ID")
+
+        if client_id:
+            return ManagedIdentityCredential(client_id=client_id)
+
+        return AzureCliCredential()

@@ -1,5 +1,5 @@
 import os
-from azure.identity import DefaultAzureCredential
+from azure.identity import ManagedIdentityCredential, AzureCliCredential
 from azure.search.documents import SearchClient
 from azure.search.documents._generated.models import (
     QueryType,
@@ -9,13 +9,14 @@ from azure.search.documents._generated.models import (
 )
 from azure.search.documents._paging import SearchItemPaged
 
+
 class AzureAISearchService:
     def __init__(self: "AzureAISearchService", index_name: str):
         if not hasattr(self, "__client"):
             self.__client = SearchClient(
                 endpoint=os.getenv("AZURE_AI_SEARCH_ENDPOINT", ""),
                 index_name=index_name,
-                credential=DefaultAzureCredential(),
+                credential=self.__get_credential()
             )
 
     def keyword_search(self: "AzureAISearchService", query: str) -> SearchItemPaged[dict]:
@@ -64,3 +65,11 @@ class AzureAISearchService:
             )
 
         return self.__client.search(**query_args, **kwargs)
+
+    def __get_credential(self: "AzureAISearchService") -> ManagedIdentityCredential | AzureCliCredential:
+        client_id = os.getenv("AZURE_CLIENT_ID")
+
+        if client_id:
+            return ManagedIdentityCredential(client_id=client_id)
+
+        return AzureCliCredential()
