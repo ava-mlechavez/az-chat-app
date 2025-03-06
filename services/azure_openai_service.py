@@ -2,9 +2,7 @@ import os
 import openai
 import logging
 from openai.types.chat import (
-    ChatCompletionMessageParam,
-    ChatCompletionUserMessageParam,
-    ChatCompletionSystemMessageParam,
+    ChatCompletionMessageParam
 )
 
 from azure.identity import ManagedIdentityCredential, AzureCliCredential, get_bearer_token_provider
