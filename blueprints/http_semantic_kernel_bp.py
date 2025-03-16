@@ -51,15 +51,15 @@ async def semantic_kernel_chat(req: Request):
         file = cast(UploadFile, form_data.get("file"))
         session_id = req.headers["X-Chat-Session-Id"]
 
-        if prompt is None:
-            return JSONResponse({"message": "Prompt is required."})
-
         history = await initialize_chat_history(store=store)
         history.set_session_info(session_id=session_id, user_id="user")
 
         chat_completion: AzureChatCompletion
         execution_settings: AzureChatPromptExecutionSettings
         if file is None:
+            if prompt is None:
+                return JSONResponse({"message": "Prompt is required."})
+
             chat_completion = cast(
                 AzureChatCompletion, kernel.get_service(GPT4OMINI_SERVICE_ID)
             )
@@ -74,6 +74,7 @@ async def semantic_kernel_chat(req: Request):
             )
 
         else:
+
             chat_completion = cast(
                 AzureChatCompletion, kernel.get_service(GPT4O_SERVICE_ID)
             )
