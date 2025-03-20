@@ -5,13 +5,13 @@ from pydantic import PrivateAttr
 
 from semantic_kernel.functions import kernel_function
 
-from azure.search.documents import SearchClient
-from azure.search.documents.indexes import SearchIndexClient
+from azure.search.documents.indexes.aio import SearchIndexClient
 from azure.search.documents._generated.models import (
     QueryType,
     VectorQuery,
     VectorizableTextQuery,
 )
+
 
 class HotelVectorSearchPlugin:
     _search_index_client: SearchIndexClient = PrivateAttr()
@@ -19,10 +19,8 @@ class HotelVectorSearchPlugin:
     def __init__(self, search_index_client: SearchIndexClient) -> None:
         self._search_index_client = search_index_client
 
-
     @kernel_function(
-        name="search",
-        description="Search for documents similar to the given query."
+        name="search", description="Search for documents similar to the given query."
     )
     async def search(
         self,
@@ -32,9 +30,7 @@ class HotelVectorSearchPlugin:
         try:
             vector_queries: list[VectorQuery] | None = [
                 VectorizableTextQuery(
-                    text=query,
-                    k_nearest_neighbors=10,
-                    fields="text_vector"
+                    text=query, k_nearest_neighbors=10, fields="text_vector"
                 )
             ]
 
@@ -42,14 +38,17 @@ class HotelVectorSearchPlugin:
                 "search_text": query,
                 "vector_queries": vector_queries,
                 "query_type": QueryType.SEMANTIC,
-                "semantic_configuration_name": os.environ["SEMANTIC_CONFIGURATION_NAME"],
+                "semantic_configuration_name": os.environ[
+                    "SEMANTIC_CONFIGURATION_NAME"
+                ],
             }
 
             search_client = self._search_index_client.get_search_client(
-            index_name=os.environ["AZURE_AI_SEARCH_INDEX_NAME"])
+                index_name=os.environ["AZURE_AI_SEARCH_INDEX_NAME"]
+            )
 
-            async with search_client:
-                results = await search_client.search(**query_args)
+            async with search_client:  # pyright: ignore
+                results = await search_client.search(**query_args)  # pyright: ignore
                 hotels: list[dict] = []
 
                 async for result in results:

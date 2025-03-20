@@ -3,7 +3,10 @@ import logging
 from azure.identity import ManagedIdentityCredential, AzureCliCredential
 
 from azure.identity import get_bearer_token_provider
-from semantic_kernel.connectors.ai.open_ai import AzureChatCompletion, AzureTextEmbedding
+from semantic_kernel.connectors.ai.open_ai import (
+    AzureChatCompletion,
+    AzureTextEmbedding,
+)
 from semantic_kernel import Kernel
 
 from azure.search.documents.indexes.aio import SearchIndexClient
@@ -25,7 +28,7 @@ def get_credential() -> ManagedIdentityCredential | AzureCliCredential:
 def initialize_search_index_client() -> SearchIndexClient:
     return SearchIndexClient(
         endpoint=os.getenv("AZURE_AI_SEARCH_ENDPOINT", ""),
-        credential=get_credential()
+        credential=get_credential(),  # pyright: ignore
     )
 
 
@@ -35,10 +38,9 @@ def initialize_semantic_kernel(search_index_client: SearchIndexClient) -> Kernel
         deployment_name="gpt-4o-mini",
         endpoint=os.getenv("AZURE_OPENAI_ENDPOINT", ""),
         ad_token_provider=get_bearer_token_provider(
-            get_credential(),
-            "https://cognitiveservices.azure.com/.default"
+            get_credential(), "https://cognitiveservices.azure.com/.default"
         ),
-        api_version=os.getenv("OPENAI_API_VERSION", "")
+        api_version=os.getenv("OPENAI_API_VERSION", ""),
     )
 
     gpt4o_service = AzureChatCompletion(
@@ -46,10 +48,9 @@ def initialize_semantic_kernel(search_index_client: SearchIndexClient) -> Kernel
         deployment_name="gpt-4o",
         endpoint=os.getenv("AZURE_OPENAI_ENDPOINT", ""),
         ad_token_provider=get_bearer_token_provider(
-            get_credential(),
-            "https://cognitiveservices.azure.com/.default"
+            get_credential(), "https://cognitiveservices.azure.com/.default"
         ),
-        api_version=os.getenv("OPENAI_API_VERSION", "")
+        api_version=os.getenv("OPENAI_API_VERSION", ""),
     )
 
     ada_embedding_service = AzureTextEmbedding(
@@ -57,10 +58,9 @@ def initialize_semantic_kernel(search_index_client: SearchIndexClient) -> Kernel
         deployment_name="text-embedding-ada-002",
         endpoint=os.getenv("AZURE_OPENAI_ENDPOINT", ""),
         ad_token_provider=get_bearer_token_provider(
-            get_credential(),
-            "https://cognitiveservices.azure.com/.default"
+            get_credential(), "https://cognitiveservices.azure.com/.default"
         ),
-        api_version=os.getenv("OPENAI_API_VERSION", "")
+        api_version=os.getenv("OPENAI_API_VERSION", ""),
     )
 
     kernel = Kernel()
@@ -70,7 +70,7 @@ def initialize_semantic_kernel(search_index_client: SearchIndexClient) -> Kernel
 
     kernel.add_plugin(
         HotelVectorSearchPlugin(search_index_client=search_index_client),
-        plugin_name="HotelVectorSearch"
+        plugin_name="HotelVectorSearch",
     )
 
     logging.basicConfig(
@@ -86,14 +86,12 @@ def initialize_store(search_index_client: SearchIndexClient) -> AzureAISearchSto
     return AzureAISearchStore(search_index_client=search_index_client)
 
 
-async def initialize_chat_history(store: AzureAISearchStore) -> ChatHistoryInAzureAISearch:
+async def initialize_chat_history(
+    store: AzureAISearchStore,
+) -> ChatHistoryInAzureAISearch:
 
     history = ChatHistoryInAzureAISearch(
-        store=store,
-        # session_id=session_id,
-        # user_id=user_id,
-        target_count=30,
-        threshold_count=30
+        store=store, target_count=30, threshold_count=30
     )
 
     await history.create_collection(collection_name="chat-history")
@@ -101,7 +99,7 @@ async def initialize_chat_history(store: AzureAISearchStore) -> ChatHistoryInAzu
 
     if len(history) == 0:
         history.add_system_message(
-            f"""
+            """
             You are a customer support assistant responsible for recommending hotels based on customer queries.
             When the question is not clear. generate a standalone question. When a user asks for a hotel recommendation, you must reply with accuracy using the HotelVectorSearch plugin. Each object contains key details such as the hotel name, category, city, state, and description. Your task is to:
 
@@ -111,6 +109,7 @@ async def initialize_chat_history(store: AzureAISearchStore) -> ChatHistoryInAzu
             - Present the information in a way that is easy for the customer to understand, emphasizing the details that are most relevant to their query (such as location, category, and description).
             - If the customer's question is unclear, ask follow-up questions to gather more details about their preferences, such as location, budget, or amenities.
             - **Do not answer any questions that are not related to hotels and outside the knowledge base. If it's a greeting greet them. If the question is not about hotels, politely inform the user that you can only assist with hotel-related inquiries.**
-        """)
+        """
+        )
 
     return history
