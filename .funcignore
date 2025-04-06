@@ -6,7 +6,7 @@ __queuestorage__
 __pycache__/
 local.settings.json
 .venv
-.http
+*.http
 *.jpg
 *.png
 *.gif
