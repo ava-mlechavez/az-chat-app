@@ -23,29 +23,6 @@ jobs:
         with:
           python-version: ${{ vars.PYTHON_VERSION }}
 
-      # - name: Install dependencies
-      #   run: |
-      #     python -m pip install --upgrade pip
-      #     pip install -r requirements.txt
-
-      # - name: Run tests with pytest
-      #   run: |
-      #     pytest --disable-warnings
-
-      # - name: Resolve Project Dependencies Using Pip
-      #   shell: bash
-      #   run: |
-      #     pushd './${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}'
-      #     python -m pip install --upgrade pip
-      #     pip install -r requirements.txt --target=".python_packages/lib/site-packages"
-      #     popd
-
-      # - name: Package Dependencies and Application
-      #   run: |
-      #     pushd './${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}'
-      #     zip -r deployment.zip . -x '*.git*' -x '*/__pycache__/*'
-      #     popd
-
       - name: Azure Login
         uses: azure/login@v2
         with:
@@ -53,18 +30,16 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      - name: Set SCM and Run from package
+      - name: Set Remote Build and HTTP Stream
         uses: azure/appservice-settings@v1
         with:
           app-name: ${{ vars.AZURE_FUNCTION_APP_NAME }}
           mask-inputs: false
-          app-settings-json: '[{ "name": "SCM_DO_BUILD_DURING_DEPLOYMENT", "value": true, "slotSetting": false}, {"name": "ENABLE_ORYX_BUILD", "value": true, "slotSetting": false }]'
+          app-settings-json: '[{ "name": "SCM_DO_BUILD_DURING_DEPLOYMENT", "value": true, "slotSetting": false}, {"name": "ENABLE_ORYX_BUILD", "value": true, "slotSetting": false }, { "name": "PYTHON_ENABLE_INIT_INDEXING", "value": 1, "slotSetting": false }]'
 
       - name: Deploy Function App
         uses: Azure/functions-action@v1
         with:
           app-name: ${{ vars.AZURE_FUNCTION_APP_NAME }}
           package: ${{ vars.AZURE_FUNCTIONAPP_PROJECT_PATH }}
-          # scm-do-build-during-deployment: true
-          # enable-oryx-build: true
           respect-funcignore: true
