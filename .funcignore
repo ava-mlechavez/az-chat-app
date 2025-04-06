@@ -3,6 +3,12 @@
 __azurite_db*__.json
 __blobstorage__
 __queuestorage__
+__pycache__/
 local.settings.json
-test
 .venv
+.http
+*.jpg
+*.png
+*.gif
+tests/
+*.test
